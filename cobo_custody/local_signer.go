@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/btcsuite/btcd/btcec"
 )
 
