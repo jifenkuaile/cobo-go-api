@@ -120,11 +120,11 @@ func (c Client) VerifyDepositAddress(coin string, address string) (http.Header, 
 	return header, result, nil
 }
 
-func (c Client) BatchVerifyDepositAddress(coin string, addresses string) (http.Header, RespNewAddresses, error) {
+func (c Client) BatchVerifyDepositAddress(coin string, addresses []string) (http.Header, RespNewAddresses, error) {
 	var result RespNewAddresses
 	var params = map[string]string{
 		"coin":    coin,
-		"address": addresses,
+		"address": strings.Join(addresses, ","),
 	}
 
 	header, body, err := c.Request("GET", "/v1/custody/addresses_info/", params)
@@ -135,6 +135,10 @@ func (c Client) BatchVerifyDepositAddress(coin string, addresses string) (http.H
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	if len(result.Result.Addresses) > 0 {
+		result.Result.Addresses = strings.Split(result.Result.Addresses[0], ",")
 	}
 
 	return header, result, nil
