@@ -1,19 +1,18 @@
 package cobo_custody
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
-	"github.com/bitly/go-simplejson"
-	"github.com/btcsuite/btcd/btcec"
 	"io/ioutil"
-	"math/big"
 	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/btcsuite/btcd/btcec"
 )
 
 type Client struct {
@@ -22,27 +21,64 @@ type Client struct {
 	Debug  bool
 }
 
-func (c Client) GetAccountInfo() (*simplejson.Json, *ApiError) {
-	return c.Request("GET", "/v1/custody/org_info/", map[string]string{})
+func (c Client) GetAccountInfo() (http.Header, RespOrgInfo, error) {
+	var result RespOrgInfo
+
+	header, body, err := c.Request("GET", "/v1/custody/org_info/", map[string]string{})
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
 }
 
-func (c Client) GetCoinInfo(coin string) (*simplejson.Json, *ApiError) {
-	return c.Request("GET", "/v1/custody/coin_info/", map[string]string{
+func (c Client) GetCoinInfo(coin string) (http.Header, RespCoinInfo, error) {
+	var result RespCoinInfo
+
+	header, body, err := c.Request("GET", "/v1/custody/coin_info/", map[string]string{
 		"coin": coin,
 	})
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
 }
 
-func (c Client) NewDepositAddress(coin string, nativeSegwit bool) (*simplejson.Json, *ApiError) {
+func (c Client) NewDepositAddress(coin string, nativeSegwit bool) (http.Header, RespNewAddress, error) {
+	var result RespNewAddress
 	var params = map[string]string{
 		"coin": coin,
 	}
 	if nativeSegwit {
 		params["native_segwit"] = "true"
 	}
-	return c.Request("POST", "/v1/custody/new_address/", params)
+
+	header, body, err := c.Request("POST", "/v1/custody/new_address/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
 }
 
-func (c Client) BatchNewDepositAddress(coin string, count int, nativeSegwit bool) (*simplejson.Json, *ApiError) {
+func (c Client) BatchNewDepositAddress(coin string, count int, nativeSegwit bool) (http.Header, RespNewAddresses, error) {
+	var result RespNewAddresses
 	var params = map[string]string{
 		"coin":  coin,
 		"count": strconv.Itoa(count),
@@ -50,202 +86,272 @@ func (c Client) BatchNewDepositAddress(coin string, count int, nativeSegwit bool
 	if nativeSegwit {
 		params["native_segwit"] = "true"
 	}
-	return c.Request("POST", "/v1/custody/new_addresses/", params)
+
+	header, body, err := c.Request("POST", "/v1/custody/new_addresses/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
 }
 
-func (c Client) VerifyDepositAddress(coin string, address string) (*simplejson.Json, *ApiError) {
+func (c Client) VerifyDepositAddress(coin string, address string) (http.Header, RespNewAddresses, error) {
+	var result RespNewAddresses
 	var params = map[string]string{
 		"coin":    coin,
 		"address": address,
 	}
-	return c.Request("GET", "/v1/custody/address_info/", params)
+
+	header, body, err := c.Request("GET", "/v1/custody/address_info/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
 }
 
-func (c Client) BatchVerifyDepositAddress(coin string, addresses string) (*simplejson.Json, *ApiError) {
+func (c Client) BatchVerifyDepositAddress(coin string, addresses string) (http.Header, RespNewAddresses, error) {
+	var result RespNewAddresses
 	var params = map[string]string{
 		"coin":    coin,
 		"address": addresses,
 	}
-	return c.Request("GET", "/v1/custody/addresses_info/", params)
+
+	header, body, err := c.Request("GET", "/v1/custody/addresses_info/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
 }
 
-func (c Client) VerifyValidAddress(coin string, addresses string) (*simplejson.Json, *ApiError) {
+func (c Client) VerifyValidAddress(coin string, addresses string) (http.Header, RespIsValidAddress, error) {
+	var result RespIsValidAddress
 	var params = map[string]string{
 		"coin":    coin,
 		"address": addresses,
 	}
-	return c.Request("GET", "/v1/custody/is_valid_address/", params)
+
+	header, body, err := c.Request("GET", "/v1/custody/is_valid_address/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
 }
 
-func (c Client) GetAddressHistory(coin string) (*simplejson.Json, *ApiError) {
+func (c Client) GetAddressHistory(coin string) (http.Header, RespAddressHistory, error) {
+	var result RespAddressHistory
 	var params = map[string]string{
 		"coin": coin,
 	}
-	return c.Request("GET", "/v1/custody/address_history/", params)
-}
-// @param coin  string "ETH"
-// @param page_index int start with 0 page
-// @param page_length int page size <= 50
-// @param sort_flag int 0:DESCENDING 1:ASCENDING
-func (c Client) GetAddressHistoryWithPage(params map[string]string) (*simplejson.Json, *ApiError) {
-	
-	return c.Request("GET", "/v1/custody/address_history/", params)
-}
 
-func (c Client) CheckLoopAddressDetails(coin string, address string, memo string) (*simplejson.Json, *ApiError) {
-	var params = map[string]string{
-		"coin":    coin,
-		"address": address,
-	}
-	if memo != "" {
-		params["memo"] = memo
-	}
-	return c.Request("GET", "/v1/custody/internal_address_info/", params)
-}
-
-func (c Client) VerifyLoopAddressList(coin string, addresses string) (*simplejson.Json, *ApiError) {
-	var params = map[string]string{
-		"coin":    coin,
-		"address": addresses,
+	header, body, err := c.Request("GET", "/v1/custody/address_history/", params)
+	if err != nil {
+		return nil, result, err
 	}
 
-	return c.Request("GET", "/v1/custody/internal_address_info_batch/", params)
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
 }
 
-func (c Client) GetTransactionDetails(txId string, ) (*simplejson.Json, *ApiError) {
+func (c Client) GetAddressHistoryWithPage(params map[string]string) (http.Header, RespAddressHistory, error) {
+	var result RespAddressHistory
+
+	header, body, err := c.Request("GET", "/v1/custody/address_history/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
+}
+
+func (c Client) GetTransactionDetails(txId string) (http.Header, RespTransaction, error) {
+	var result RespTransaction
 	var params = map[string]string{
 		"id": txId,
 	}
 
-	return c.Request("GET", "/v1/custody/transaction/", params)
+	header, body, err := c.Request("GET", "/v1/custody/transaction/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
 }
 
-func (c Client) GetTransactionsById(params map[string]string) (*simplejson.Json, *ApiError) {
-	return c.Request("GET", "/v1/custody/transactions_by_id/", params)
+func (c Client) GetTransactionsById(params map[string]string) (http.Header, RespTransaction, error) {
+	var result RespTransaction
+
+	header, body, err := c.Request("GET", "/v1/custody/transactions_by_id/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
 }
 
-func (c Client) GetTransactionsByTxid(txid string) (*simplejson.Json, *ApiError) {
+func (c Client) GetTransactionsByTxid(txid string) (http.Header, RespTransaction, error) {
+	var result RespTransaction
 	var params = map[string]string{
 		"txid": txid,
 	}
-	return c.Request("GET", "/v1/custody/transaction_by_txid/", params)
+
+	header, body, err := c.Request("GET", "/v1/custody/transaction_by_txid/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
+
 }
 
-func (c Client) GetTransactionsByTime(params map[string]string) (*simplejson.Json, *ApiError) {
-	return c.Request("GET", "/v1/custody/transactions_by_time/", params)
+func (c Client) GetTransactionsByTime(params map[string]string) (http.Header, RespTransactions, error) {
+	var result RespTransactions
+
+	header, body, err := c.Request("GET", "/v1/custody/transactions_by_time/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
+
 }
 
-func (c Client) GetPendingTransactions(params map[string]string) (*simplejson.Json, *ApiError) {
-	return c.Request("GET", "/v1/custody/pending_transactions/", params)
+func (c Client) GetPendingTransactions(params map[string]string) (http.Header, RespTransactions, error) {
+	var result RespTransactions
+
+	header, body, err := c.Request("GET", "/v1/custody/pending_transactions/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
+
 }
 
-func (c Client) GetPendingTransaction(id string) (*simplejson.Json, *ApiError) {
-	return c.Request("GET", "/v1/custody/pending_transactions/", map[string]string{
+func (c Client) GetPendingTransaction(id string) (http.Header, RespTransactions, error) {
+	var result RespTransactions
+
+	header, body, err := c.Request("GET", "/v1/custody/pending_transactions/", map[string]string{
 		"id": id,
 	})
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
+
 }
 
-func (c Client) GetTransactionHistory(params map[string]string) (*simplejson.Json, *ApiError) {
-	return c.Request("GET", "/v1/custody/transaction_history/", params)
+func (c Client) GetTransactionHistory(params map[string]string) (http.Header, RespTransactions, error) {
+	var result RespTransactions
+
+	header, body, err := c.Request("GET", "/v1/custody/transaction_history/", params)
+	if err != nil {
+		return nil, result, err
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	return header, result, nil
+
 }
 
-func (c Client) Withdraw(coin string, requestId string, address string, amount *big.Int, options map[string]string) (*simplejson.Json, *ApiError) {
-	if requestId == "" {
-		hashResult := sha256.Sum256([]byte(address))
-		requestId = fmt.Sprintf("sdk_request_id_%s_%d", fmt.Sprintf("%x", hashResult)[0:8], time.Now().Unix()*1000)
-	}
-	var params = map[string]string{
-		"coin":       coin,
-		"request_id": requestId,
-		"address":    address,
-		"amount":     amount.String(),
-	}
-	if options["memo"] != "" {
-		params["memo"] = options["memo"]
+func (c Client) QueryWithdrawInfo(requestId string) (http.Header, RespTransaction, error) {
+	var result RespTransaction
+
+	header, body, err := c.Request("GET", "/v1/custody/withdraw_info_by_request_id/", map[string]string{"request_id": requestId})
+	if err != nil {
+		return nil, result, err
 	}
 
-	if options["force_external"] != "" {
-		params["force_external"] = options["force_external"]
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	if options["force_internal"] != "" {
-		params["force_internal"] = options["force_internal"]
-	}
-	return c.Request("POST", "/v1/custody/new_withdraw_request/", params)
+	return header, result, nil
+
 }
 
-func (c Client) QueryWithdrawInfo(requestId string) (*simplejson.Json, *ApiError) {
-	return c.Request("GET", "/v1/custody/withdraw_info_by_request_id/", map[string]string{"request_id": requestId})
-}
-
-func (c Client) GetStakingProductDetails(productId string, language string) (*simplejson.Json, *ApiError) {
-	var params = map[string]string{
-		"product_id": productId,
-		"language":   language,
-	}
-	return c.Request("GET", "/v1/custody/staking_product/", params)
-}
-
-func (c Client) GetStakingProductList(coin string, language string) (*simplejson.Json, *ApiError) {
-	var params = map[string]string{
-		"language": language,
-	}
-	if coin != "" {
-		params["coin"] = coin
-	}
-
-	return c.Request("GET", "/v1/custody/staking_products/", params)
-}
-
-func (c Client) Stake(productId string, amount *big.Int) (*simplejson.Json, *ApiError) {
-	var params = map[string]string{
-		"product_id": productId,
-		"amount":     amount.String(),
-	}
-	return c.Request("POST", "/v1/custody/staking_stake/", params)
-}
-
-func (c Client) Unstake(productId string, amount *big.Int) (*simplejson.Json, *ApiError) {
-	var params = map[string]string{
-		"product_id": productId,
-		"amount":     amount.String(),
-	}
-	return c.Request("POST", "/v1/custody/staking_unstake/", params)
-}
-
-func (c Client) GetStakings(coin string, language string) (*simplejson.Json, *ApiError) {
-	var params = map[string]string{
-		"language": language,
-	}
-	if coin != "" {
-		params["coin"] = coin
-	}
-	return c.Request("GET", "/v1/custody/stakings/", params)
-}
-
-func (c Client) GetUnstakings(coin string) (*simplejson.Json, *ApiError) {
-	var params = map[string]string{}
-	if coin != "" {
-		params["coin"] = coin
-	}
-	return c.Request("GET", "/v1/custody/unstakings/", params)
-}
-
-func (c Client) GetStakingHistory() (*simplejson.Json, *ApiError) {
-	return c.Request("GET", "/v1/custody/staking_history/", map[string]string{})
-}
-
-func (c Client) request(method string, path string, params map[string]string) string {
+func (c Client) Request(method string, path string, params map[string]string) (header http.Header, body []byte, err error) {
 	httpClient := &http.Client{}
 	nonce := fmt.Sprintf("%d", time.Now().Unix()*1000)
 	sorted := SortParams(params)
 	var req *http.Request
 	if method == "POST" {
-		req, _ = http.NewRequest(method, c.Env.Host+path, strings.NewReader(sorted))
+		req, err = http.NewRequest(method, c.Env.Host+path, strings.NewReader(sorted))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	} else {
-		req, _ = http.NewRequest(method, c.Env.Host+path+"?"+sorted, strings.NewReader(""))
+		req, err = http.NewRequest(method, c.Env.Host+path+"?"+sorted, strings.NewReader(""))
 	}
+	if err != nil {
+		return nil, nil, fmt.Errorf("error when new request, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
+	}
+
 	content := strings.Join([]string{method, path, nonce, sorted}, "|")
 
 	req.Header.Set("Biz-Api-Key", c.Signer.GetPublicKey())
@@ -256,43 +362,29 @@ func (c Client) request(method string, path string, params map[string]string) st
 		fmt.Println("request >>>>>>>>")
 		fmt.Println(method, "\n", path, "\n", params, "\n", content, "\n", req.Header)
 	}
-	resp, _ := httpClient.Do(req)
-
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error when send request, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
+	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error when read response body data, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
+	}
 
-	timestamp := resp.Header["Biz-Timestamp"][0]
-	signature := resp.Header["Biz-Resp-Signature"][0]
+	timestamp := resp.Header.Get("Biz-Timestamp")
+	signature := resp.Header.Get("Biz-Resp-Signature")
 	if c.Debug {
 		fmt.Println("response <<<<<<<<")
 		fmt.Println(string(body), "\n", timestamp, "\n", signature)
 	}
 	success := c.VerifyEcc(string(body)+"|"+timestamp, signature)
 	if !success {
-		panic("response signature verify failed")
-	}
-	return string(body)
-}
-
-func (c Client) Request(method string, path string, params map[string]string) (*simplejson.Json, *ApiError) {
-	jsonString := c.request(method, path, params)
-	json, _ := simplejson.NewJson([]byte(jsonString))
-	success, _ := json.Get("success").Bool()
-	if !success {
-		errorId, _ := json.Get("error_id").String()
-		errorMessage, _ := json.Get("error_message").String()
-		errorCode, _ := json.Get("error_code").Int()
-		apiError := ApiError{
-			ErrorId:      errorId,
-			ErrorMessage: errorMessage,
-			ErrorCode:    errorCode,
-		}
-		return nil, &apiError
+		return nil, nil, fmt.Errorf("response signature verify failed")
 	}
 
-	result := json.Get("result")
-	return result, nil
+	return resp.Header, body, nil
 }
 
 func SortParams(params map[string]string) string {
