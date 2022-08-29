@@ -21,6 +21,11 @@ type Client struct {
 	Debug  bool
 }
 
+type CallDetail struct {
+	RequestInfo RequestInfo
+	RespInfo    RespInfo
+}
+
 type RequestInfo struct {
 	Method string
 	Url    string
@@ -28,41 +33,46 @@ type RequestInfo struct {
 	Header http.Header
 }
 
-func (c Client) GetAccountInfo() (RequestInfo, http.Header, RespOrgInfo, error) {
+type RespInfo struct {
+	Header http.Header
+	Body   string
+}
+
+func (c Client) GetAccountInfo() (CallDetail, RespOrgInfo, error) {
 	var result RespOrgInfo
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/org_info/", map[string]string{})
+	callDetail, body, err := c.Request("GET", "/v1/custody/org_info/", map[string]string{})
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) GetCoinInfo(coin string) (RequestInfo, http.Header, RespCoinInfo, error) {
+func (c Client) GetCoinInfo(coin string) (CallDetail, RespCoinInfo, error) {
 	var result RespCoinInfo
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/coin_info/", map[string]string{
+	callDetail, body, err := c.Request("GET", "/v1/custody/coin_info/", map[string]string{
 		"coin": coin,
 	})
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) NewDepositAddress(coin string, nativeSegwit bool) (RequestInfo, http.Header, RespNewAddress, error) {
+func (c Client) NewDepositAddress(coin string, nativeSegwit bool) (CallDetail, RespNewAddress, error) {
 	var result RespNewAddress
 	var params = map[string]string{
 		"coin": coin,
@@ -71,20 +81,20 @@ func (c Client) NewDepositAddress(coin string, nativeSegwit bool) (RequestInfo, 
 		params["native_segwit"] = "true"
 	}
 
-	reqInfo, header, body, err := c.Request("POST", "/v1/custody/new_address/", params)
+	callDetail, body, err := c.Request("POST", "/v1/custody/new_address/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) BatchNewDepositAddress(coin string, count int, nativeSegwit bool) (RequestInfo, http.Header, RespNewAddresses, error) {
+func (c Client) BatchNewDepositAddress(coin string, count int, nativeSegwit bool) (CallDetail, RespNewAddresses, error) {
 	var result RespNewAddresses
 	var params = map[string]string{
 		"coin":  coin,
@@ -94,266 +104,266 @@ func (c Client) BatchNewDepositAddress(coin string, count int, nativeSegwit bool
 		params["native_segwit"] = "true"
 	}
 
-	reqInfo, header, body, err := c.Request("POST", "/v1/custody/new_addresses/", params)
+	callDetail, body, err := c.Request("POST", "/v1/custody/new_addresses/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) VerifyDepositAddress(coin string, address string) (RequestInfo, http.Header, RespNewAddresses, error) {
+func (c Client) VerifyDepositAddress(coin string, address string) (CallDetail, RespNewAddresses, error) {
 	var result RespNewAddresses
 	var params = map[string]string{
 		"coin":    coin,
 		"address": address,
 	}
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/address_info/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/address_info/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) BatchVerifyDepositAddress(coin string, addresses []string) (RequestInfo, http.Header, RespNewAddresses, error) {
+func (c Client) BatchVerifyDepositAddress(coin string, addresses []string) (CallDetail, RespNewAddresses, error) {
 	var result RespNewAddresses
 	var params = map[string]string{
 		"coin":    coin,
 		"address": strings.Join(addresses, ","),
 	}
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/addresses_info/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/addresses_info/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
 	if len(result.Result.Addresses) > 0 {
 		result.Result.Addresses = strings.Split(result.Result.Addresses[0], ",")
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) VerifyValidAddress(coin string, addresses string) (RequestInfo, http.Header, RespIsValidAddress, error) {
+func (c Client) VerifyValidAddress(coin string, addresses string) (CallDetail, RespIsValidAddress, error) {
 	var result RespIsValidAddress
 	var params = map[string]string{
 		"coin":    coin,
 		"address": addresses,
 	}
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/is_valid_address/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/is_valid_address/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) GetAddressHistory(coin string) (RequestInfo, http.Header, RespAddressHistory, error) {
+func (c Client) GetAddressHistory(coin string) (CallDetail, RespAddressHistory, error) {
 	var result RespAddressHistory
 	var params = map[string]string{
 		"coin": coin,
 	}
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/address_history/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/address_history/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) GetAddressHistoryWithPage(params map[string]string) (RequestInfo, http.Header, RespAddressHistory, error) {
+func (c Client) GetAddressHistoryWithPage(params map[string]string) (CallDetail, RespAddressHistory, error) {
 	var result RespAddressHistory
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/address_history/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/address_history/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) GetTransactionDetails(txId string) (RequestInfo, http.Header, RespTransaction, error) {
+func (c Client) GetTransactionDetails(txId string) (CallDetail, RespTransaction, error) {
 	var result RespTransaction
 	var params = map[string]string{
 		"id": txId,
 	}
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/transaction/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/transaction/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) GetTransactionsById(params map[string]string) (RequestInfo, http.Header, RespTransaction, error) {
+func (c Client) GetTransactionsById(params map[string]string) (CallDetail, RespTransaction, error) {
 	var result RespTransaction
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/transactions_by_id/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/transactions_by_id/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 }
 
-func (c Client) GetTransactionsByTxid(txid string) (RequestInfo, http.Header, RespTransaction, error) {
+func (c Client) GetTransactionsByTxid(txid string) (CallDetail, RespTransaction, error) {
 	var result RespTransaction
 	var params = map[string]string{
 		"txid": txid,
 	}
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/transaction_by_txid/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/transaction_by_txid/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 
 }
 
-func (c Client) GetTransactionsByTime(params map[string]string) (RequestInfo, http.Header, RespTransactions, error) {
+func (c Client) GetTransactionsByTime(params map[string]string) (CallDetail, RespTransactions, error) {
 	var result RespTransactions
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/transactions_by_time/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/transactions_by_time/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 
 }
 
-func (c Client) GetPendingTransactions(params map[string]string) (RequestInfo, http.Header, RespTransactions, error) {
+func (c Client) GetPendingTransactions(params map[string]string) (CallDetail, RespTransactions, error) {
 	var result RespTransactions
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/pending_transactions/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/pending_transactions/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 
 }
 
-func (c Client) GetPendingTransaction(id string) (RequestInfo, http.Header, RespTransactions, error) {
+func (c Client) GetPendingTransaction(id string) (CallDetail, RespTransactions, error) {
 	var result RespTransactions
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/pending_transactions/", map[string]string{
+	callDetail, body, err := c.Request("GET", "/v1/custody/pending_transactions/", map[string]string{
 		"id": id,
 	})
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 
 }
 
-func (c Client) GetTransactionHistory(params map[string]string) (RequestInfo, http.Header, RespTransactions, error) {
+func (c Client) GetTransactionHistory(params map[string]string) (CallDetail, RespTransactions, error) {
 	var result RespTransactions
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/transaction_history/", params)
+	callDetail, body, err := c.Request("GET", "/v1/custody/transaction_history/", params)
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 
 }
 
-func (c Client) QueryWithdrawInfo(requestId string) (RequestInfo, http.Header, RespTransaction, error) {
+func (c Client) QueryWithdrawInfo(requestId string) (CallDetail, RespTransaction, error) {
 	var result RespTransaction
 
-	reqInfo, header, body, err := c.Request("GET", "/v1/custody/withdraw_info_by_request_id/", map[string]string{"request_id": requestId})
+	callDetail, body, err := c.Request("GET", "/v1/custody/withdraw_info_by_request_id/", map[string]string{"request_id": requestId})
 	if err != nil {
-		return reqInfo, header, result, err
+		return callDetail, result, err
 	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return reqInfo, header, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return reqInfo, header, result, nil
+	return callDetail, result, nil
 
 }
 
-func (c Client) Request(method string, path string, params map[string]string) (reqInfo RequestInfo, header http.Header, body []byte, err error) {
+func (c Client) Request(method string, path string, params map[string]string) (callDetail CallDetail, body []byte, err error) {
 	httpClient := &http.Client{}
 	nonce := fmt.Sprintf("%d", time.Now().Unix()*1000)
 	sorted := SortParams(params)
 	var req *http.Request
-	reqInfo = RequestInfo{
+	reqInfo := RequestInfo{
 		Method: method,
 	}
 
@@ -367,7 +377,7 @@ func (c Client) Request(method string, path string, params map[string]string) (r
 		reqInfo.Url = c.Env.Host + path + "?" + sorted
 	}
 	if err != nil {
-		return reqInfo, nil, nil, fmt.Errorf("error when new request, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
+		return callDetail, nil, fmt.Errorf("error when new request, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
 	}
 
 	content := strings.Join([]string{method, path, nonce, sorted}, "|")
@@ -383,13 +393,13 @@ func (c Client) Request(method string, path string, params map[string]string) (r
 	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return reqInfo, nil, nil, fmt.Errorf("error when send request, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
+		return callDetail, nil, fmt.Errorf("error when send request, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
 	}
 	defer resp.Body.Close()
 
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return reqInfo, nil, nil, fmt.Errorf("error when read response body data, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
+		return callDetail, nil, fmt.Errorf("error when read response body data, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
 	}
 
 	timestamp := resp.Header.Get("Biz-Timestamp")
@@ -400,10 +410,16 @@ func (c Client) Request(method string, path string, params map[string]string) (r
 	}
 	success := c.VerifyEcc(string(body)+"|"+timestamp, signature)
 	if !success {
-		return reqInfo, nil, nil, fmt.Errorf("response signature verify failed")
+		return callDetail, nil, fmt.Errorf("response signature verify failed")
 	}
 
-	return reqInfo, resp.Header, body, nil
+	callDetail.RequestInfo = reqInfo
+	callDetail.RespInfo = RespInfo{
+		Header: resp.Header,
+		Body:   string(body),
+	}
+
+	return callDetail, body, nil
 }
 
 func SortParams(params map[string]string) string {
