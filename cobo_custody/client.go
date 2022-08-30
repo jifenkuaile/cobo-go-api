@@ -235,8 +235,8 @@ func (c Client) GetTransactionDetails(txId string) (CallDetail, RespTransaction,
 	return callDetail, result, nil
 }
 
-func (c Client) GetTransactionsById(params map[string]string) (CallDetail, RespTransaction, error) {
-	var result RespTransaction
+func (c Client) GetTransactionsById(params map[string]string) (CallDetail, RespTransactions, error) {
+	var result RespTransactions
 
 	callDetail, body, err := c.Request("GET", "/v1/custody/transactions_by_id/", params)
 	if err != nil {
