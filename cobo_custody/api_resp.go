@@ -7,69 +7,69 @@ import (
 )
 
 type RespOrgInfo struct {
-	ApiError ApiError
-	Success  bool    `json:"success"`
-	Result   OrgInfo `json:"result"`
+	ApiError
+	Success bool    `json:"success"`
+	Result  OrgInfo `json:"result"`
 }
 
 type RespSupportedCoins struct {
-	ApiError ApiError
-	Success  bool   `json:"success"`
-	Result   []Coin `json:"result"`
+	ApiError
+	Success bool   `json:"success"`
+	Result  []Coin `json:"result"`
 }
 
 type RespCoinInfo struct {
-	ApiError ApiError
-	Success  bool     `json:"success"`
-	Result   CoinInfo `json:"result"`
+	ApiError
+	Success bool     `json:"success"`
+	Result  CoinInfo `json:"result"`
 }
 
 type RespNewAddress struct {
-	ApiError ApiError
-	Success  bool        `json:"success"`
-	Result   AddressInfo `json:"result"`
+	ApiError
+	Success bool        `json:"success"`
+	Result  AddressInfo `json:"result"`
 }
 
 type RespNewAddresses struct {
-	ApiError ApiError
-	Success  bool          `json:"success"`
-	Result   AddressesInfo `json:"result"`
+	ApiError
+	Success bool          `json:"success"`
+	Result  AddressesInfo `json:"result"`
 }
 
 type RespAddressInfo struct {
-	ApiError ApiError
-	Success  bool        `json:"success"`
-	Result   AddressInfo `json:"result"`
+	ApiError
+	Success bool        `json:"success"`
+	Result  AddressInfo `json:"result"`
 }
 
 type RespAddressesInfo struct {
-	ApiError ApiError
-	Success  bool          `json:"success"`
-	Result   AddressesInfo `json:"result"`
+	ApiError
+	Success bool          `json:"success"`
+	Result  AddressesInfo `json:"result"`
 }
 
 type RespIsValidAddress struct {
-	ApiError ApiError
-	Success  bool `json:"success"`
-	Result   bool `json:"result"`
+	ApiError
+	Success bool `json:"success"`
+	Result  bool `json:"result"`
 }
 
 type RespAddressHistory struct {
-	ApiError ApiError
-	Success  bool          `json:"success"`
-	Result   []AddressInfo `json:"result"`
+	ApiError
+	Success bool          `json:"success"`
+	Result  []AddressInfo `json:"result"`
 }
 
 type RespTransaction struct {
-	ApiError ApiError
-	Success  bool        `json:"success"`
-	Result   Transaction `json:"result"`
+	ApiError
+	Success bool        `json:"success"`
+	Result  Transaction `json:"result"`
 }
 
 type RespTransactions struct {
-	ApiError ApiError
-	Success  bool          `json:"success"`
-	Result   []Transaction `json:"result"`
+	ApiError
+	Success bool          `json:"success"`
+	Result  []Transaction `json:"result"`
 }
 
 type OrgInfo struct {
