@@ -440,6 +440,10 @@ func SortParams(params map[string]string) string {
 }
 
 func (c Client) VerifyEcc(message string, signature string) bool {
+	if message == "" || signature == "" {
+		return false
+	}
+
 	pubKeyBytes, _ := hex.DecodeString(c.Env.CoboPub)
 	pubKey, _ := btcec.ParsePubKey(pubKeyBytes, btcec.S256())
 
