@@ -402,6 +402,10 @@ func (c Client) Request(method string, path string, params map[string]string) (c
 		return callDetail, nil, fmt.Errorf("error when read response body data, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return callDetail, nil, fmt.Errorf("cobo resp code is: %v, not 200, body: %v", resp.StatusCode, string(body))
+	}
+
 	timestamp := resp.Header.Get("Biz-Timestamp")
 	signature := resp.Header.Get("Biz-Resp-Signature")
 	if c.Debug {
