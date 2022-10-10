@@ -232,6 +232,9 @@ func (c Client) GetTransactionDetails(txId string) (CallDetail, RespTransaction,
 		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
+	result.Result.CreatedTime = time.Unix(result.Result.CreatedTimestamp/1000, result.Result.CreatedTimestamp%1000*1e6)
+	result.Result.LastTime = time.Unix(result.Result.LastTimestamp/1000, result.Result.LastTimestamp%1000*1e6)
+
 	return callDetail, result, nil
 }
 
@@ -246,6 +249,13 @@ func (c Client) GetTransactionsById(params map[string]string) (CallDetail, RespT
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
+	}
+
+	for i, info := range result.Result {
+		info.CreatedTime = time.Unix(info.CreatedTimestamp/1000, info.CreatedTimestamp%1000*1e6)
+		info.LastTime = time.Unix(info.LastTimestamp/1000, info.LastTimestamp%1000*1e6)
+
+		result.Result[i] = info
 	}
 
 	return callDetail, result, nil
@@ -267,8 +277,10 @@ func (c Client) GetTransactionsByTxid(txid string) (CallDetail, RespTransaction,
 		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return callDetail, result, nil
+	result.Result.CreatedTime = time.Unix(result.Result.CreatedTimestamp/1000, result.Result.CreatedTimestamp%1000*1e6)
+	result.Result.LastTime = time.Unix(result.Result.LastTimestamp/1000, result.Result.LastTimestamp%1000*1e6)
 
+	return callDetail, result, nil
 }
 
 func (c Client) GetTransactionsByTime(params map[string]string) (CallDetail, RespTransactions, error) {
@@ -284,8 +296,14 @@ func (c Client) GetTransactionsByTime(params map[string]string) (CallDetail, Res
 		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return callDetail, result, nil
+	for i, info := range result.Result {
+		info.CreatedTime = time.Unix(info.CreatedTimestamp/1000, info.CreatedTimestamp%1000*1e6)
+		info.LastTime = time.Unix(info.LastTimestamp/1000, info.LastTimestamp%1000*1e6)
 
+		result.Result[i] = info
+	}
+
+	return callDetail, result, nil
 }
 
 func (c Client) GetPendingTransactions(params map[string]string) (CallDetail, RespTransactions, error) {
@@ -301,8 +319,14 @@ func (c Client) GetPendingTransactions(params map[string]string) (CallDetail, Re
 		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return callDetail, result, nil
+	for i, info := range result.Result {
+		info.CreatedTime = time.Unix(info.CreatedTimestamp/1000, info.CreatedTimestamp%1000*1e6)
+		info.LastTime = time.Unix(info.LastTimestamp/1000, info.LastTimestamp%1000*1e6)
 
+		result.Result[i] = info
+	}
+
+	return callDetail, result, nil
 }
 
 func (c Client) GetPendingTransaction(id string) (CallDetail, RespTransactions, error) {
@@ -320,8 +344,14 @@ func (c Client) GetPendingTransaction(id string) (CallDetail, RespTransactions, 
 		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return callDetail, result, nil
+	for i, info := range result.Result {
+		info.CreatedTime = time.Unix(info.CreatedTimestamp/1000, info.CreatedTimestamp%1000*1e6)
+		info.LastTime = time.Unix(info.LastTimestamp/1000, info.LastTimestamp%1000*1e6)
 
+		result.Result[i] = info
+	}
+
+	return callDetail, result, nil
 }
 
 func (c Client) GetTransactionHistory(params map[string]string) (CallDetail, RespTransactions, error) {
@@ -337,8 +367,14 @@ func (c Client) GetTransactionHistory(params map[string]string) (CallDetail, Res
 		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return callDetail, result, nil
+	for i, info := range result.Result {
+		info.CreatedTime = time.Unix(info.CreatedTimestamp/1000, info.CreatedTimestamp%1000*1e6)
+		info.LastTime = time.Unix(info.LastTimestamp/1000, info.LastTimestamp%1000*1e6)
 
+		result.Result[i] = info
+	}
+
+	return callDetail, result, nil
 }
 
 func (c Client) QueryWithdrawInfo(requestId string) (CallDetail, RespTransaction, error) {
@@ -354,8 +390,10 @@ func (c Client) QueryWithdrawInfo(requestId string) (CallDetail, RespTransaction
 		return callDetail, result, fmt.Errorf("error when unmarshal resp body: %v, err: %v", string(body), err.Error())
 	}
 
-	return callDetail, result, nil
+	result.Result.CreatedTime = time.Unix(result.Result.CreatedTimestamp/1000, result.Result.CreatedTimestamp%1000*1e6)
+	result.Result.LastTime = time.Unix(result.Result.LastTimestamp/1000, result.Result.LastTimestamp%1000*1e6)
 
+	return callDetail, result, nil
 }
 
 func (c Client) Request(method string, path string, params map[string]string) (callDetail CallDetail, body []byte, err error) {
