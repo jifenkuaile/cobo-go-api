@@ -415,7 +415,7 @@ func (c Client) Request(method string, path string, params map[string]string) (c
 		reqInfo.Url = c.Env.Host + path + "?" + sorted
 	}
 	if err != nil {
-		return callDetail, nil, fmt.Errorf("error when new request, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
+		return callDetail, nil, fmt.Errorf("error when new request, method: %v, url: %v, err: %v", method, reqInfo.Url, err.Error())
 	}
 
 	content := strings.Join([]string{method, path, nonce, sorted}, "|")
@@ -431,17 +431,19 @@ func (c Client) Request(method string, path string, params map[string]string) (c
 	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return callDetail, nil, fmt.Errorf("error when send request, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
+		return callDetail, nil, fmt.Errorf("error when send request, method: %v, url: %v, err: %v", method, reqInfo.Url, err.Error())
 	}
 	defer resp.Body.Close()
 
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return callDetail, nil, fmt.Errorf("error when read response body data, method: %v, url: %v, err: %v", method, c.Env.Host+path, err.Error())
+		return callDetail, nil, fmt.Errorf("error when read response body data, method: %v, url: %v, err: %v", method, reqInfo.Url, err.Error())
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return callDetail, nil, fmt.Errorf("cobo resp code is: %v, not 200, body: %v", resp.StatusCode, string(body))
+		return callDetail, nil, fmt.Errorf("cobo resp code is: %v, not 200, body: %v, request path: %v, body: %v, request header: %v",
+			resp.StatusCode, string(body),
+			reqInfo.Url, reqInfo.Body, reqInfo.Header)
 	}
 
 	timestamp := resp.Header.Get("Biz-Timestamp")
@@ -452,7 +454,8 @@ func (c Client) Request(method string, path string, params map[string]string) (c
 	}
 	success := c.VerifyEcc(string(body)+"|"+timestamp, signature)
 	if !success {
-		return callDetail, nil, fmt.Errorf("response signature verify failed")
+		return callDetail, nil, fmt.Errorf("response signature verify failed, resp: %v, timestamp: %v, sign: %v",
+			string(body), timestamp, signature)
 	}
 
 	callDetail.RequestInfo = reqInfo
