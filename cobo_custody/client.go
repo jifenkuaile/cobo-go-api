@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"sort"
@@ -398,7 +399,7 @@ func (c Client) QueryWithdrawInfo(requestId string) (CallDetail, RespTransaction
 
 func (c Client) Request(method string, path string, params map[string]string) (callDetail CallDetail, body []byte, err error) {
 	httpClient := &http.Client{}
-	nonce := fmt.Sprintf("%d", time.Now().Unix()*1000)
+	nonce := fmt.Sprintf("%d", time.Now().Unix()*1000+rand.Int63n(1000))
 	sorted := SortParams(params)
 	var req *http.Request
 	reqInfo := RequestInfo{
